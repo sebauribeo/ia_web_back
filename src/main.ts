@@ -1,17 +1,23 @@
+/**
+ * Punto de entrada de la aplicación AI Platform.
+ * Configura y arranca el servidor NestJS con Swagger,
+ * validación global, CORS y prefijo de rutas.
+ */
 process.env.TZ = 'America/Santiago';
 
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
-async function bootstrap() {
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+
+async function bootstrap(): Promise<void> {
+  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
-  // Global prefix
   app.setGlobalPrefix('api');
 
-  // Validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -20,13 +26,12 @@ async function bootstrap() {
     }),
   );
 
-  // CORS
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: CORS_ORIGIN,
     credentials: true,
   });
 
-  // Swagger
+  // Configuración de Swagger para documentación interactiva
   const config = new DocumentBuilder()
     .setTitle('AI Platform API')
     .setDescription('API for AI Platform services')
@@ -38,7 +43,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`🚀 Backend running on http://localhost:${port}`);
-  console.log(`📚 Swagger docs on http://localhost:${port}/api/docs`);
+  logger.log(`Backend running on http://localhost:${port}`);
+  logger.log(`Swagger docs on http://localhost:${port}/api/docs`);
 }
 bootstrap();

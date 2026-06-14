@@ -1,15 +1,25 @@
+/**
+ * Servicio de calendario.
+ * Proporciona métodos para consultar disponibilidad y crear reservas.
+ * Actualmente usa datos simulados; en producción se integrará con
+ * Calendly o Cal.com.
+ */
 import { Injectable } from '@nestjs/common';
 
-/** Calendar & scheduling integration (Calendly / Cal.com adapter). */
+interface TimeSlot {
+  time: string;
+  available: boolean;
+}
+
+interface BookingConfirmation {
+  success: boolean;
+  bookingId: string;
+  message: string;
+}
+
 @Injectable()
 export class CalendarService {
-  /**
-   * Get available time slots for a given date.
-   * @param date - ISO date string (YYYY-MM-DD)
-   * @returns Array of time slots with availability status
-   * TODO: Replace mock with Calendly/Cal.com API call
-   */
-  async getAvailableSlots(date: string): Promise<any[]> {
+  async getAvailableSlots(date: string): Promise<TimeSlot[]> {
     return [
       { time: '09:00', available: true },
       { time: '10:00', available: true },
@@ -20,19 +30,13 @@ export class CalendarService {
     ];
   }
 
-  /**
-   * Create a new booking / scheduled meeting.
-   * @param data - Booking details (name, email, date, time, optional message)
-   * @returns Booking confirmation with ID
-   * TODO: Replace mock with Calendly/Cal.com API call
-   */
   async createBooking(data: {
     name: string;
     email: string;
     date: string;
     time: string;
     message?: string;
-  }): Promise<any> {
+  }): Promise<BookingConfirmation> {
     return {
       success: true,
       bookingId: 'mock-booking-id',

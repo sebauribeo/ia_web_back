@@ -1,3 +1,8 @@
+/**
+ * Módulo raíz de la aplicación AI Platform.
+ * Importa y configura todos los módulos de la aplicación,
+ * incluyendo ConfigModule, TypeOrmModule y los módulos de negocio.
+ */
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,10 +19,12 @@ import { HealthController } from './modules/health.controller';
 
 @Module({
   imports: [
+    // Configuración global de variables de entorno
     ConfigModule.forRoot({
       isGlobal: true,
     }),
 
+    // Conexión a base de datos PostgreSQL
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',

@@ -1,3 +1,8 @@
+/**
+ * Controlador de administración.
+ * Provee endpoints CRUD protegidos por JWT + rol admin
+ * para gestionar usuarios, servicios, casos, contactos y logs de chat.
+ */
 import {
   Controller,
   Get,
@@ -15,7 +20,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from './admin.guard';
-import { User } from '../users/entities/user.entity';
+import { User, UserRole } from '../users/entities/user.entity';
 import { Service } from '../services/entities/service.entity';
 import { Case } from '../cases/entities/case.entity';
 import { Contact } from '../contacts/entities/contact.entity';
@@ -39,6 +44,7 @@ export class AdminController {
     private chatLogsRepo: Repository<ChatLog>,
   ) {}
 
+  /** Obtiene estadísticas generales del sistema */
   @Get('stats')
   async getStats() {
     const [users, services, cases, contacts, unreadContacts, chatLogs] = await Promise.all([
@@ -52,6 +58,7 @@ export class AdminController {
     return { users, services, cases, contacts, unreadContacts, chatLogs };
   }
 
+  /** Lista todos los usuarios (sin exponer contraseñas) */
   @Get('users')
   async getUsers() {
     const users = await this.usersRepo.find({
@@ -63,6 +70,7 @@ export class AdminController {
         company: true,
         phone: true,
         isActive: true,
+        lastLoginAt: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -71,16 +79,29 @@ export class AdminController {
     return users;
   }
 
+  /** Actualiza el rol de un usuario */
   @Patch('users/:id/role')
   async updateUserRole(@Param('id') id: string, @Body() body: { role: string }) {
     const user = await this.usersRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
-    user.role = body.role as any;
+    user.role = body.role as UserRole;
     await this.usersRepo.save(user);
     this.logger.log(`User role updated: ${user.email} → ${body.role}`);
     return user;
   }
 
+  /** Activa o desactiva un usuario */
+  @Patch('users/:id/status')
+  async toggleUserStatus(@Param('id') id: string) {
+    const user = await this.usersRepo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    user.isActive = !user.isActive;
+    await this.usersRepo.save(user);
+    this.logger.log(`User status toggled: ${user.email} → ${user.isActive ? 'active' : 'inactive'}`);
+    return user;
+  }
+
+  /** Elimina un usuario del sistema */
   @Delete('users/:id')
   async deleteUser(@Param('id') id: string) {
     const user = await this.usersRepo.findOne({ where: { id } });
@@ -90,11 +111,13 @@ export class AdminController {
     return { message: 'Usuario eliminado' };
   }
 
+  /** Lista todos los servicios ordenados */
   @Get('services')
   async getServices() {
     return this.servicesRepo.find({ order: { sortOrder: 'ASC' } });
   }
 
+  /** Crea un nuevo servicio */
   @Post('services')
   async createService(@Body() body: Partial<Service>) {
     const service = this.servicesRepo.create(body);
@@ -103,6 +126,7 @@ export class AdminController {
     return saved;
   }
 
+  /** Actualiza un servicio existente */
   @Put('services/:id')
   async updateService(@Param('id') id: string, @Body() body: Partial<Service>) {
     const service = await this.servicesRepo.findOne({ where: { id } });
@@ -113,6 +137,7 @@ export class AdminController {
     return saved;
   }
 
+  /** Elimina un servicio */
   @Delete('services/:id')
   async deleteService(@Param('id') id: string) {
     const service = await this.servicesRepo.findOne({ where: { id } });
@@ -122,11 +147,13 @@ export class AdminController {
     return { message: 'Servicio eliminado' };
   }
 
+  /** Lista todos los casos de éxito */
   @Get('cases')
   async getCases() {
     return this.casesRepo.find({ order: { createdAt: 'DESC' } });
   }
 
+  /** Crea un nuevo caso de éxito */
   @Post('cases')
   async createCase(@Body() body: Partial<Case>) {
     const c = this.casesRepo.create(body);
@@ -135,6 +162,7 @@ export class AdminController {
     return saved;
   }
 
+  /** Actualiza un caso de éxito */
   @Put('cases/:id')
   async updateCase(@Param('id') id: string, @Body() body: Partial<Case>) {
     const c = await this.casesRepo.findOne({ where: { id } });
@@ -145,6 +173,7 @@ export class AdminController {
     return saved;
   }
 
+  /** Elimina un caso de éxito */
   @Delete('cases/:id')
   async deleteCase(@Param('id') id: string) {
     const c = await this.casesRepo.findOne({ where: { id } });
@@ -154,11 +183,13 @@ export class AdminController {
     return { message: 'Caso eliminado' };
   }
 
+  /** Lista todos los contactos recibidos */
   @Get('contacts')
   async getContacts() {
     return this.contactsRepo.find({ order: { createdAt: 'DESC' } });
   }
 
+  /** Marca un contacto como leído */
   @Patch('contacts/:id/read')
   async markContactRead(@Param('id') id: string) {
     const contact = await this.contactsRepo.findOne({ where: { id } });
@@ -168,6 +199,7 @@ export class AdminController {
     return contact;
   }
 
+  /** Elimina un contacto */
   @Delete('contacts/:id')
   async deleteContact(@Param('id') id: string) {
     const contact = await this.contactsRepo.findOne({ where: { id } });
@@ -176,6 +208,7 @@ export class AdminController {
     return { message: 'Contacto eliminado' };
   }
 
+  /** Obtiene los últimos 200 logs del chat */
   @Get('chat-logs')
   async getChatLogs() {
     return this.chatLogsRepo.find({

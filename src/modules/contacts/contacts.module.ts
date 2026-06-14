@@ -1,3 +1,8 @@
+/**
+ * Módulo de contactos.
+ * Configura la entidad Contact en TypeORM y registra el servicio
+ * y controlador para la gestión de formularios de contacto.
+ */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ContactsService } from './contacts.service';

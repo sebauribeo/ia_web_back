@@ -1,3 +1,9 @@
+/**
+ * Servicio del agente de demostración (A2).
+ * Proporciona una demostración interactiva de IA para la página /demo.
+ * Sin estado (stateless), basado en reglas, con respuestas más enriquecidas
+ * que el servicio de chat (A1).
+ */
 import { Injectable } from '@nestjs/common';
 
 /**
@@ -8,10 +14,10 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class DemoService {
   /**
-   * Process a demo chat message and return a formatted response.
-   * Stateless — each call is independent. No DB persistence.
-   * @param message - Raw user input
-   * @returns Formatted response string (markdown-style formatting)
+   * Procesa un mensaje de la demo y devuelve una respuesta formateada.
+   * Sin estado — cada llamada es independiente. Sin persistencia en BD.
+   * @param message - Texto de entrada del usuario
+   * @returns Respuesta formateada (con formato tipo markdown)
    */
   async processDemoMessage(message: string): Promise<string> {
     const lower = message.toLowerCase();

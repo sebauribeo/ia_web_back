@@ -1,3 +1,8 @@
+/**
+ * Módulo de chat.
+ * Configura el agente chatbot (A1) con persistencia en la tabla chat_logs
+ * a través de TypeORM.
+ */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatService } from './chat.service';

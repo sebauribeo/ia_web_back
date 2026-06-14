@@ -1,3 +1,7 @@
+/**
+ * DTO de respuesta de autenticación.
+ * Contiene el token JWT y los datos básicos del perfil del usuario.
+ */
 import { ApiProperty } from '@nestjs/swagger';
 
 class UserProfile {
@@ -9,6 +13,9 @@ class UserProfile {
 
   @ApiProperty({ example: 'Juan Pérez' })
   name: string;
+
+  @ApiProperty({ example: 'client' })
+  role: string;
 }
 
 export class AuthResponseDto {

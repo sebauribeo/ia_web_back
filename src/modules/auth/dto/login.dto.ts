@@ -1,3 +1,7 @@
+/**
+ * DTO para la solicitud de inicio de sesión.
+ * Valida que email y password sean proporcionados.
+ */
 import { IsEmail, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 

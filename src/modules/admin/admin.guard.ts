@@ -1,4 +1,9 @@
+/**
+ * Guard de autorización para rutas de administración.
+ * Verifica que el usuario autenticado tenga el rol 'admin'.
+ */
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common';
+import { UserRole } from '../users/entities/user.entity';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -13,7 +18,7 @@ export class AdminGuard implements CanActivate {
       throw new ForbiddenException('Acceso denegado');
     }
 
-    if (user.role !== 'admin') {
+    if (user.role !== UserRole.ADMIN) {
       this.logger.warn(`AdminGuard: User ${user.userId} is not admin`);
       throw new ForbiddenException('Se requieren permisos de administrador');
     }

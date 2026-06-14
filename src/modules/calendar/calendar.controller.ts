@@ -1,3 +1,8 @@
+/**
+ * Controlador del módulo de calendario.
+ * Gestiona la disponibilidad de horarios y la creación de reservas
+ * para reuniones a través de la integración con Calendly/Cal.com.
+ */
 import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CalendarService } from './calendar.service';
@@ -9,7 +14,7 @@ export class CalendarController {
 
   @Get('slots')
   @ApiOperation({ summary: 'Get available time slots' })
-  async getAvailableSlots(@Query('date') date: string) {
+  async getAvailableSlots(@Query('date') date: string): Promise<{ time: string; available: boolean }[]> {
     return this.calendarService.getAvailableSlots(date);
   }
 
@@ -24,7 +29,7 @@ export class CalendarController {
       time: string;
       message?: string;
     },
-  ) {
+  ): Promise<{ success: boolean; bookingId: string; message: string }> {
     return this.calendarService.createBooking(body);
   }
 }

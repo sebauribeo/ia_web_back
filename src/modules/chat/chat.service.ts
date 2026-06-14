@@ -1,29 +1,23 @@
-import { Injectable } from '@nestjs/common';
+/**
+ * Servicio del agente chatbot (A1).
+ * Procesa mensajes de usuarios a través del widget flotante de chat.
+ * Actualmente usa un sistema basado en reglas; en el futuro se integrará
+ * con LLM (OpenAI/Claude). Todos los mensajes se persisten en chat_logs.
+ */
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatLog } from './entities/chat-log.entity';
 
-/**
- * Chatbot agent — A1 in AGENTS.md
- * Processes user messages via the floating chat widget.
- * Current: rule-based; future: LLM (OpenAI/Claude).
- * All messages are persisted to chat_logs for audit.
- */
 @Injectable()
 export class ChatService {
+  private readonly logger = new Logger(ChatService.name);
+
   constructor(
     @InjectRepository(ChatLog)
     private chatLogRepository: Repository<ChatLog>,
   ) {}
 
-  /**
-   * Process an incoming chat message.
-   * Saves both user message and generated response to chat_logs.
-   * @param message - Raw user input text
-   * @param sessionId - Optional session identifier for context
-   * @param userId - Optional authenticated user ID
-   * @returns The assistant's response text
-   */
   async processMessage(
     message: string,
     sessionId?: string,
@@ -40,19 +34,28 @@ export class ChatService {
 
     const response = this.generateResponse(message);
 
-    await this.chatLogRepository.save(
-      this.chatLogRepository.create({
-        sessionId,
-        userId,
-        role: 'assistant',
-        content: response,
-      })
-    );
+    try {
+      await this.chatLogRepository.save(
+        this.chatLogRepository.create({
+          sessionId,
+          userId,
+          role: 'assistant',
+          content: response,
+        })
+      );
+    } catch (error) {
+      this.logger.error(`Failed to persist assistant response: ${error.message}`);
+    }
 
     return response;
   }
 
-  /** Rule-based response generator. Replace with LLM call for production. */
+  /**
+   * Generador de respuestas basado en reglas.
+   * Reemplazar con llamada a LLM para producción.
+   * @param message - Texto de entrada del usuario
+   * @returns Respuesta generada según palabras clave detectadas
+   */
   private generateResponse(message: string): string {
     const lower = message.toLowerCase();
 
@@ -69,7 +72,11 @@ export class ChatService {
     return 'Gracias por tu mensaje. ¿En qué puedo ayudarte?';
   }
 
-  /** Get full message history for a session, oldest first. */
+  /**
+   * Obtiene el historial completo de mensajes de una sesión, ordenados del más antiguo al más reciente.
+   * @param sessionId - Identificador único de la sesión
+   * @returns Lista de entradas del chat
+   */
   async getHistory(sessionId: string): Promise<ChatLog[]> {
     return this.chatLogRepository.find({
       where: { sessionId },

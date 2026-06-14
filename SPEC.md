@@ -10,12 +10,26 @@
 |--------|------|------|---------|----------|
 | POST | `/auth/login` | LocalStrategy | `{ email, password }` | `{ access_token, user }` |
 | POST | `/auth/register` | Public | `{ name, email, password }` | `{ access_token, user }` |
+| POST | `/auth/forgot-password` | Public | `{ email }` | `{ message, devToken }` |
+| POST | `/auth/reset-password` | Public | `{ email, token, newPassword }` | `{ message }` |
 
 ### Flow
 ```
 register → check duplicate → bcrypt.hash(password,10) → UsersService.create() → login()
-login   → LocalStrategy.validateUser() → bcrypt.compare() → JwtService.sign({ email, sub })
+login   → validateUser() → check isActive → bcrypt.compare() → set lastLoginAt → JwtService.sign({ email, sub, role })
+forgot  → find user → generate 6-digit code (15min expiry) → update user
+reset   → find user → verify token + expiry → bcrypt.hash(newPassword,10) → update user
 ```
+
+### JWT Payload
+```json
+{ "email": "user@example.com", "sub": "uuid", "role": "client|admin" }
+```
+
+### Auth Guards
+- `JwtAuthGuard`: extrae token del header `Authorization: Bearer <token>`, verifica con `jsonwebtoken.verify()`, setea `request.user = { userId, email, role }`
+- `LocalAuthGuard`: usa Passport LocalStrategy para validar email + password
+- `AdminGuard`: verifica `user.role === 'admin'`
 
 ---
 
@@ -23,8 +37,8 @@ login   → LocalStrategy.validateUser() → bcrypt.compare() → JwtService.sig
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/users` | — | List all |
-| GET | `/users/:id` | — | Get by UUID |
+| GET | `/users` | JWT | List all |
+| GET | `/users/:id` | JWT | Get by UUID |
 | PUT | `/users/:id` | JWT | Partial update |
 | DELETE | `/users/:id` | JWT | Delete |
 
@@ -38,7 +52,10 @@ login   → LocalStrategy.validateUser() → bcrypt.compare() → JwtService.sig
 | company | varchar | — | NULL | — |
 | phone | varchar | — | NULL | — |
 | role | enum | — | `client` | `client` \| `admin` |
-| isActive | boolean | — | `true` | — |
+| isActive | boolean | — | `true` | Se verifica en login |
+| lastLoginAt | datetime | — | NULL | Actualizado en cada login |
+| resetToken | varchar | — | NULL | Código 6 dígitos |
+| resetTokenExpires | datetime | — | NULL | 15 min desde generación |
 | createdAt | datetime | Auto | now() | — |
 | updatedAt | datetime | Auto | now() | — |
 
@@ -200,7 +217,33 @@ POST /calendar/book { name, email, date, time, message? }
 
 ---
 
-## 9. Health
+## 9. Admin
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/admin/stats` | Conteos globales (users, services, cases, contacts, unread, chat) |
+| GET | `/admin/users` | Lista completa con lastLoginAt |
+| PATCH | `/admin/users/:id/role` | Cambiar rol (`client` / `admin`) |
+| PATCH | `/admin/users/:id/status` | Activar/desactivar usuario |
+| DELETE | `/admin/users/:id` | Eliminar usuario |
+| GET | `/admin/services` | Listar servicios |
+| POST | `/admin/services` | Crear servicio |
+| PUT | `/admin/services/:id` | Actualizar servicio |
+| DELETE | `/admin/services/:id` | Eliminar servicio |
+| GET | `/admin/cases` | Listar casos |
+| POST | `/admin/cases` | Crear caso |
+| PUT | `/admin/cases/:id` | Actualizar caso |
+| DELETE | `/admin/cases/:id` | Eliminar caso |
+| GET | `/admin/contacts` | Listar contactos |
+| PATCH | `/admin/contacts/:id/read` | Marcar leído |
+| DELETE | `/admin/contacts/:id` | Eliminar contacto |
+| GET | `/admin/chat-logs` | Historial de chat (últimos 200) |
+
+Todos protegidos con `JwtAuthGuard` + `AdminGuard`.
+
+---
+
+## 10. Health
 
 | Method | Path | Response |
 |--------|------|----------|
@@ -212,7 +255,8 @@ POST /calendar/book { name, email, date, time, message? }
 
 ### Auth
 - Passwords hashed with bcrypt (salt rounds: 10)
-- JWT payload: `{ email, sub (userId) }`
+- JWT payload: `{ email, sub (userId), role }`
+- JWT verification: `jsonwebtoken.verify()` directo en JwtAuthGuard
 - Header: `Authorization: Bearer <token>`
 
 ### CORS

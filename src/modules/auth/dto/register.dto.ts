@@ -1,3 +1,7 @@
+/**
+ * DTO para el registro de nuevos usuarios.
+ * Valida email, contraseña (mín. 6 caracteres) y nombre (mín. 2 caracteres).
+ */
 import { IsEmail, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 

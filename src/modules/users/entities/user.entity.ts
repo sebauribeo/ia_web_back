@@ -1,3 +1,9 @@
+/**
+ * @fileoverview
+ * Entidad TypeORM que representa un usuario de la plataforma.
+ * Incluye autenticación, roles, control de sesión y marcas temporales.
+ */
+
 import {
   Entity,
   Column,
@@ -6,11 +12,22 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+/**
+ * Enumeración de roles disponibles para los usuarios.
+ * - CLIENT: Usuario cliente estándar.
+ * - ADMIN: Administrador con privilegios de gestión.
+ */
 export enum UserRole {
   CLIENT = 'client',
   ADMIN = 'admin',
 }
 
+/**
+ * Entidad que modela un usuario registrado en AI Platform.
+ * Almacena credenciales de autenticación, datos de perfil, rol,
+ * estado de actividad, fecha del último inicio de sesión y tokens
+ * de restablecimiento de contraseña.
+ */
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -40,6 +57,15 @@ export class User {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @Column({ nullable: true })
+  lastLoginAt: Date;
+
+  @Column({ nullable: true })
+  resetToken: string;
+
+  @Column({ nullable: true })
+  resetTokenExpires: Date;
 
   @CreateDateColumn()
   createdAt: Date;

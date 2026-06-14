@@ -1,3 +1,8 @@
+/**
+ * Módulo de administración.
+ * Agrupa el controlador y guard de administración,
+ * e importa las entidades necesarias para TypeORM.
+ */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminController } from './admin.controller';

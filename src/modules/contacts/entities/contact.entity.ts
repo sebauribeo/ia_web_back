@@ -1,3 +1,8 @@
+/**
+ * Entidad de contacto.
+ * Representa el envío de un formulario de contacto, cotización o evaluación
+ * en la base de datos. Incluye datos del remitente y estado de lectura.
+ */
 import {
   Entity,
   Column,

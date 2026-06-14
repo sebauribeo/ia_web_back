@@ -1,3 +1,8 @@
+/**
+ * Módulo de autenticación.
+ * Configura Passport, JWT y la estrategia local para
+ * manejo de login, registro y recuperación de contraseña.
+ */
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -11,7 +16,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     UsersModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'ai-platform-secret-key',
+      secret: process.env.JWT_SECRET || 'change-me-in-production',
       signOptions: { expiresIn: '24h' },
     }),
   ],

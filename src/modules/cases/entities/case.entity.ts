@@ -1,3 +1,8 @@
+/**
+ * Entidad de caso de éxito.
+ * Representa un caso de estudio en la base de datos, incluyendo
+ * detalles del cliente, resultados, industria y estado de publicación.
+ */
 import {
   Entity,
   Column,

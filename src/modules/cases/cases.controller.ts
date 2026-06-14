@@ -1,3 +1,8 @@
+/**
+ * Controlador del módulo de casos de éxito.
+ * Expone endpoints REST para listar, crear, actualizar y eliminar
+ * casos de estudio. Las operaciones de escritura requieren autenticación.
+ */
 import {
   Controller,
   Get,
@@ -18,18 +23,33 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class CasesController {
   constructor(private casesService: CasesService) {}
 
+  /**
+   * Obtiene todos los casos de éxito publicados.
+   * @returns Lista de casos de éxito
+   */
   @Get()
   @ApiOperation({ summary: 'Get all cases' })
   async findAll(): Promise<Case[]> {
     return this.casesService.findAll();
   }
 
+  /**
+   * Obtiene un caso de éxito por su ID.
+   * @param id - Identificador único del caso
+   * @returns Caso de éxito encontrado
+   */
   @Get(':id')
   @ApiOperation({ summary: 'Get case by ID' })
   async findOne(@Param('id') id: string): Promise<Case> {
     return this.casesService.findOne(id);
   }
 
+  /**
+   * Crea un nuevo caso de éxito.
+   * Requiere autenticación JWT.
+   * @param data - Datos parciales del caso
+   * @returns Caso de éxito creado
+   */
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -38,6 +58,13 @@ export class CasesController {
     return this.casesService.create(data);
   }
 
+  /**
+   * Actualiza un caso de éxito existente.
+   * Requiere autenticación JWT.
+   * @param id - Identificador único del caso
+   * @param data - Datos parciales a actualizar
+   * @returns Caso de éxito actualizado
+   */
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -49,6 +76,11 @@ export class CasesController {
     return this.casesService.update(id, data);
   }
 
+  /**
+   * Elimina un caso de éxito.
+   * Requiere autenticación JWT.
+   * @param id - Identificador único del caso
+   */
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

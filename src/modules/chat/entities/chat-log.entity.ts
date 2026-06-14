@@ -1,3 +1,8 @@
+/**
+ * Entidad de registro de chat.
+ * Almacena cada mensaje enviado y recibido a través del agente chatbot (A1),
+ * incluyendo el rol (usuario/asistente) y la sesión correspondiente.
+ */
 import {
   Entity,
   Column,

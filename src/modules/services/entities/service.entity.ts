@@ -1,3 +1,9 @@
+/**
+ * @fileoverview
+ * Entidad TypeORM que representa un servicio del catálogo de AI Platform.
+ * Almacena información como título, descripción, icono, características y casos de uso.
+ */
+
 import {
   Entity,
   Column,
@@ -6,6 +12,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+/**
+ * Entidad que modela un servicio ofrecido en la plataforma (Chatbots, Automatización, Agentes).
+ * Cada servicio tiene un título, descripción, icono, lista de características y casos de uso,
+ * además de control de orden y visibilidad.
+ */
 @Entity('services')
 export class Service {
   @PrimaryGeneratedColumn('uuid')

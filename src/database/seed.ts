@@ -1,8 +1,18 @@
+/**
+ * Script de siembra (seed) idempotente para la base de datos.
+ * Crea el usuario administrador por defecto, los servicios
+ * del catálogo y los casos de éxito de ejemplo.
+ * Es seguro ejecutarlo múltiples veces.
+ */
 import { DataSource } from 'typeorm';
 import { User, UserRole } from '../modules/users/entities/user.entity';
 import { Service } from '../modules/services/entities/service.entity';
 import { Case } from '../modules/cases/entities/case.entity';
 import * as bcrypt from 'bcrypt';
+
+const BCRYPT_SALT_ROUNDS = 10;
+const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL || 'admin@aiplatform.com';
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'admin123';
 
 async function seed() {
   const dataSource = new DataSource({
@@ -23,24 +33,24 @@ async function seed() {
   const serviceRepository = dataSource.getRepository(Service);
   const caseRepository = dataSource.getRepository(Case);
 
-  // Create admin user with real bcrypt hash
+  // Crear usuario administrador con hash bcrypt real
   const adminUser = await userRepository.findOne({
-    where: { email: 'admin@aiplatform.com' },
+    where: { email: ADMIN_EMAIL },
   });
   if (!adminUser) {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, BCRYPT_SALT_ROUNDS);
     await userRepository.save({
-      email: 'admin@aiplatform.com',
+      email: ADMIN_EMAIL,
       password: hashedPassword,
       name: 'Admin',
       role: UserRole.ADMIN,
     });
-    console.log('✅ Admin user created (admin@aiplatform.com / admin123)');
+    console.log(`Admin user created (${ADMIN_EMAIL})`);
   } else {
-    console.log('ℹ️  Admin user already exists');
+    console.log('Admin user already exists');
   }
 
-  // Create services
+  // Crear servicios del catálogo si no existen
   const existingServices = await serviceRepository.count();
   if (existingServices === 0) {
     await serviceRepository.save([
@@ -74,7 +84,7 @@ async function seed() {
     console.log('ℹ️  Services already exist');
   }
 
-  // Create sample cases
+  // Crear casos de éxito de ejemplo si no existen
   const existingCases = await caseRepository.count();
   if (existingCases === 0) {
     await caseRepository.save([
